@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ماشین‌حساب مهندسی و سلامتی پیشرفته (PWA)</title>
+    <!-- Tailwind CSS for modern look -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind Custom Config to support RTL and colors -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            600: '#1d4ed8',
+                            700: '#1e40af',
+                            800: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700&display=swap');
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f8fafc;
+        }
+        .dark body {
+            background-color: #0f172a;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .dark ::webkit-scrollbar-thumb {
+            background: #334155;
+        }
+        .page-footer {
+             position: fixed; bottom: 0; left: 0; right: 0; z-index: 400;
+             border-top: 1px solid var(--border); padding: 0.3rem 2.5rem;
+             text-align: center; align-items: center; justify-content: space-between;
+             background: rgba(189, 238, 209, 0.95); backdrop-filter: blur(20px);
+    }
+    /* فضای پایین صفحه تا زیر footer مخفی نشه */
+        .page { padding-bottom: 52px; }
+        .footer-copy { font-size: 0.72rem; align-items: center; text-align: center; color: var(--muted); }
+        .footer-top {
+              font-size: 0.72rem; color: var(--muted); text-decoration: none;
+              letter-spacing: 0.08em; text-transform: uppercase; transition: color 0.2s;
+    }
+        .footer-top:hover { color: var(--accent); }
+
+    </style>
+    <!-- Web App Manifest for PWA support -->
+    <link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIm1hc2hpbmhpc2FiIiwKICAic2hvcnRfbmFtZSI6ICJjYWxjIiwKICAic3RhcnRfdXJsIjogIi4iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNmOGZhZmMiLAogICJ0aGVtZV9jb2xvciI6ICIxZDRlZDgiCn0=">
+</head>
+<body class="text-slate-800 transition-colors duration-200">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-brand-600 text-white p-2 rounded-xl shadow-md shadow-brand-600/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-slate-900">ابرماشین‌حساب مهندسی و سلامتی</h1>
+                    <p class="text-xs text-slate-500"><a href="www.karimzaadeh.ir">فرهاد کریم‌زاده | نسخه پیشرفته آفلاین (PWA)</a></p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <!-- Navigation Tabs -->
+                <nav class="hidden md:flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+                    <button onclick="switchTab('engineering')" id="btn-tab-engineering" class="tab-btn px-4 py-2 text-sm font-medium rounded-lg transition-all bg-white text-brand-700 shadow-sm">هسته مهندسی</button>
+                    <button onclick="switchTab('weight')" id="btn-tab-weight" class="tab-btn px-4 py-2 text-sm font-medium rounded-lg transition-all text-slate-600 hover:text-slate-900">مدیریت وزن</button>
+                    <button onclick="switchTab('converter')" id="btn-tab-converter" class="tab-btn px-4 py-2 text-sm font-medium rounded-lg transition-all text-slate-600 hover:text-slate-900">تبدیل واحدها</button>
+                </nav>
+                
+                <!-- Precision Setting -->
+                <div class="flex items-center gap-2 border-r pr-4 border-slate-200">
+                    <label class="text-xs text-slate-500 font-medium">ارقام با‌معنی:</label>
+                    <select id="sig-figs" onchange="updateSigFigs()" class="bg-slate-50 border border-slate-300 text-xs rounded-lg px-2 py-1 focus:ring-brand-600 focus:border-brand-600">
+                        <option value="2">2</option>
+                        <option value="4" selected>4</option>
+                        <option value="6">6</option>
+                        <option value="8">8</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Navigation Bottom Bar -->
+    <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 flex justify-around py-2 shadow-lg">
+        <button onclick="switchTab('engineering')" class="mobile-tab-btn flex flex-col items-center gap-1 text-xs font-medium text-brand-600" id="mob-tab-engineering">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+            مهندسی
+        </button>
+        <button onclick="switchTab('weight')" class="mobile-tab-btn flex flex-col items-center gap-1 text-xs font-medium text-slate-500" id="mob-tab-weight">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+            مدیریت وزن
+        </button>
+        <button onclick="switchTab('converter')" class="mobile-tab-btn flex flex-col items-center gap-1 text-xs font-medium text-slate-500" id="mob-tab-converter">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+            تبدیل واحد
+        </button>
+    </div>
+
+    <!-- Main Content Container -->
+    <main class="max-w-6xl mx-auto px-4 py-6 mb-20 md:mb-10">
+        
+        <!-- 1. ENGINEERING MODULE -->
+        <section id="sec-engineering" class="tab-content grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Formula Picker & Input Column -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Formula Category Selection -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <h2 class="text-base font-bold text-slate-900 mb-3 flex items-center gap-2">
+                        <span class="w-2 h-4 bg-brand-600 rounded-full"></span> انتخاب فرمول مهندسی
+                    </h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <button onclick="selectFormula('ohm')" id="f-btn-ohm" class="formula-select-btn text-right p-3 rounded-xl border border-brand-200 bg-brand-5/40 hover:bg-brand-5 text-brand-900 font-medium transition-all flex flex-col">
+                            <span class="text-sm font-bold">قانون اهم (Ohm's Law)</span>
+                            <span class="text-xs text-brand-600 mt-1">V = I × R (الکترونیک)</span>
+                        </button>
+                        <button onclick="selectFormula('stress')" id="f-btn-stress" class="formula-select-btn text-right p-3 rounded-xl border border-slate-200 hover:border-slate-300 text-slate-700 hover:bg-slate-5 transition-all flex flex-col">
+                            <span class="text-sm font-bold">تنش مکانیکی (Stress)</span>
+                            <span class="text-xs text-slate-500 mt-1">σ = F / A (مکانیک جامدات)</span>
+                        </button>
+                        <button onclick="selectFormula('continuity')" id="f-btn-continuity" class="formula-select-btn text-right p-3 rounded-xl border border-slate-200 hover:border-slate-300 text-slate-700 hover:bg-slate-5 transition-all flex flex-col">
+                            <span class="text-sm font-bold">معادله پیوستگی سیالات</span>
+                            <span class="text-xs text-slate-500 mt-1">Q = A × v (مکانیک سیالات)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Active Inputs Form -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex justify-between items-center border-b pb-3 border-slate-100">
+                        <h3 class="font-bold text-slate-900" id="eng-form-title">ورودی‌های فرمول: قانون اهم</h3>
+                        <span class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-md">دو مقدار را وارد کنید تا مقدار سوم محاسبه شود</span>
+                    </div>
+
+                    <!-- Dynamic Input Fields will be mounted here -->
+                    <div id="eng-inputs-container" class="space-y-4">
+                        <!-- Loaded dynamically via JavaScript -->
+                    </div>
+
+                    <div class="pt-2">
+                        <button onclick="calculateEngineering()" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-md shadow-brand-600/10 flex justify-center items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                              <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7zm6 7a1 1 0 11-2 0 1 1 0 012 0zm-3 0a1 1 0 11-2 0 1 1 0 012 0zm3 3a1 1 0 11-2 0 1 1 0 012 0zm-3 0a1 1 0 11-2 0 1 1 0 012 0z" clip-rule="evenodd" />
+                            </svg>
+                            محاسبه مهندسی و ارزیابی واحدها
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Side Results / Step-by-Step Panel -->
+            <div class="space-y-6">
+                <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-xl flex flex-col justify-between min-h-[250px]">
+                    <div>
+                        <span class="text-xs font-bold text-brand-400 uppercase tracking-wider">خروجی نهایی سیستم</span>
+                        <div class="mt-4" id="eng-result-display">
+                            <p class="text-slate-400 text-sm">در انتظار وارد کردن پارامترها و کلیک بر روی دکمه محاسبه...</p>
+                        </div>
+                    </div>
+                    <div class="border-t border-slate-800 pt-4 mt-6 flex justify-between items-center text-xs text-slate-400">
+                        <span>قالب‌بندی: نماد مهندسی استاندارد</span>
+                        <span class="bg-slate-800 text-brand-400 px-2 py-1 rounded font-mono" id="eng-notation-status">SI Active</span>
+                    </div>
+                </div>
+
+                <!-- Step-by-step Justification -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-4 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                        گزارش گام‌به‌گام تشریحی (Justification)
+                    </h3>
+                    <div id="eng-steps-container" class="space-y-3 text-xs text-slate-600 leading-relaxed">
+                        <p class="text-slate-400 italic">هنوز محاسباتی انجام نشده است.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. WEIGHT MANAGEMENT MODULE -->
+        <section id="sec-weight" class="tab-content hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- User Profile Form -->
+            <div class="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+                <h2 class="text-base font-bold text-slate-900 flex items-center gap-2 border-b pb-3 border-slate-100">
+                    <span class="w-2 h-4 bg-emerald-600 rounded-full"></span> آنالیز فیزیکی و متابولیک
+                </h2>
+                
+                <div class="space-y-4">
+                    <!-- Gender Setup -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-2">جنسیت</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="border rounded-xl p-3 flex items-center justify-center gap-2 cursor-pointer transition-all bg-brand-5/40 border-brand-500 text-brand-900" id="lbl-gender-male">
+                                <input type="radio" name="gender" value="male" checked onchange="toggleGenderStyle()" class="hidden">
+                                <span>آقا</span>
+                            </label>
+                            <label class="border rounded-xl p-3 flex items-center justify-center gap-2 cursor-pointer transition-all border-slate-200 text-slate-600" id="lbl-gender-female">
+                                <input type="radio" name="gender" value="female" onchange="toggleGenderStyle()" class="hidden">
+                                <span>خانم</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Age -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">سن (سال)</label>
+                        <input type="number" id="weight-age" value="25" min="15" max="100" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+
+                    <!-- Weight and Unit System -->
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="col-span-2">
+                            <label class="block text-xs font-bold text-slate-700 mb-1" id="lbl-weight-input">وزن کنونی</label>
+                            <input type="number" id="weight-val" value="70" step="0.1" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-sm font-mono text-left">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">واحد وزن</label>
+                            <select id="weight-unit" onchange="handleWeightUnitChange()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-2 py-2.5 text-xs h-[46px]">
+                                <option value="kg" selected>kg (کیلو)</option>
+                                <option value="lb">lb (پوند)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Height and Unit System -->
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="col-span-2">
+                            <label class="block text-xs font-bold text-slate-700 mb-1" id="lbl-height-input">قد کنونی</label>
+                            <input type="number" id="height-val" value="175" step="0.1" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-sm font-mono text-left">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">واحد قد</label>
+                            <select id="height-unit" onchange="handleHeightUnitChange()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-2 py-2.5 text-xs h-[46px]">
+                                <option value="cm" selected>cm (سانتی)</option>
+                                <option value="in">in (اینچ)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Activity Level -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">میزان فعالیت روزانه</label>
+                        <select id="activity-level" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-xs">
+                            <option value="1.2" selected>بدون فعالیت / کارمندی (Sedentary)</option>
+                            <option value="1.375">فعالیت کم (۱ تا ۳ روز ورزش در هفته)</option>
+                            <option value="1.55">فعالیت متوسط (۳ تا ۵ روز ورزش فشرده)</option>
+                            <option value="1.725">بسیار فعال (تمرینات حرفه‌ای هر روزه)</option>
+                        </select>
+                    </div>
+
+                    <!-- Target Plan Category -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">هدف افزایش وزن</label>
+                        <select id="gain-scenario" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-xs">
+                            <option value="250" selected>افزایش وزن کنترل‌شده و با حوصله (۰.۲۵ کیلوگرم در هفته)</option>
+                            <option value="500">افزایش وزن استاندارد و سریع عضلانی (۰.۵ کیلوگرم در هفته)</option>
+                        </select>
+                    </div>
+
+                    <button onclick="calculateWeightPlan()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-md shadow-emerald-600/10 flex justify-center items-center gap-2 text-sm">
+                        محاسبه متابولیسم و برنامه غذایی
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results & Macronutrients Breakdown Display -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Caloric Panel Dashboard -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm text-center">
+                        <span class="text-xs text-slate-500 font-medium block mb-1">نرخ متابولیسم پایه (BMR)</span>
+                        <div class="text-2xl font-bold text-slate-800 font-mono" id="wm-bmr">-</div>
+                        <span class="text-[10px] text-slate-400">کالری پایه بقای بدن</span>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm text-center">
+                        <span class="text-xs text-slate-500 font-medium block mb-1">انرژی مصرفی کل (TDEE)</span>
+                        <div class="text-2xl font-bold text-slate-800 font-mono" id="wm-tdee">-</div>
+                        <span class="text-[10px] text-slate-400">کالری نگهدارنده وزن موجود</span>
+                    </div>
+                    <div class="bg-emerald-50 p-5 rounded-2xl border border-emerald-200 text-center">
+                        <span class="text-xs text-emerald-800 font-bold block mb-1">کالری هدف (افزایش وزن)</span>
+                        <div class="text-2xl font-bold text-emerald-700 font-mono" id="wm-target-cal">-</div>
+                        <span class="text-[10px] text-emerald-600 font-medium">کالری مورد نیاز روزانه شما</span>
+                    </div>
+                </div>
+
+                <!-- Macromolecules Targets Card -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.003 9.003 0 1020.945 13H11V3.055z" />
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                        </svg>
+                        اهداف تقسیم‌بندی درشت‌مغذی‌ها (Macros)
+                    </h3>
+                    
+                    <div class="space-y-4" id="wm-macros-container">
+                        <p class="text-sm text-slate-400 italic">برای مشاهده درشت‌مغذی‌ها ابتدا مشخصات خود را در باکس سمت راست وارد کرده و دکمه محاسبه را فشار دهید.</p>
+                    </div>
+                </div>
+
+                <!-- Mathematical Equation Explanation -->
+                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                    <h4 class="text-xs font-bold text-slate-800 mb-2">فرمول‌ها و متدولوژی علمی استفاده شده:</h4>
+                    <ul class="text-xs text-slate-600 space-y-2 list-disc list-inside leading-relaxed">
+                        <li><strong>نرخ متابولیسم پایه:</strong> محاسبه شده بر اساس استاندارد جهانی <span class="font-semibold text-slate-800">Mifflin-St Jeor</span> به خاطر دقت بسیار بالا در علوم تغذیه کلاینت‌ساید.</li>
+                        <li><strong>تقسیم‌بندی پروتئین:</strong> بر مبنای استاندارد افزایش حجم عضلانی معادل <span class="font-semibold text-emerald-600">۲ گرم به ازای هر کیلوگرم</span> از وزن بدن برنامه‌ریزی شده است.</li>
+                        <li><strong>چربی‌ها:</strong> معادل <span class="font-semibold">۲۵ درصد</span> از کل ظرفیت انرژی روزانه تنظیم شده و باقی مانده کالری به کربوهیدرات‌های پیچیده اختصاص یافته است.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. UNIVERSAL CONVERTER MODULE -->
+        <section id="sec-converter" class="tab-content hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left inputs card -->
+            <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b pb-4 border-slate-100">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900">موتور فوق پیشرفته تبدیل سیستم‌ها و واحدها</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">تبدیل ماتریسی بدون خطا و آنی بین انواع مقیاس‌ها</p>
+                    </div>
+                    
+                    <!-- Universal Category Selector -->
+                    <select id="conv-category" onchange="loadCategoryUnits()" class="bg-brand-50 border border-brand-200 text-brand-900 font-bold text-xs rounded-xl px-3 py-2 focus:ring-brand-500 focus:border-brand-500 w-full sm:w-auto">
+                        <option value="length" selected>📏 طول و مسافت (Length)</option>
+                        <option value="mass">⚖️ جرم و وزن (Mass)</option>
+                        <option value="volume">🧪 حجم مایعات و گازها (Volume)</option>
+                        <option value="temperature">🌡️ درجه حرارت و دما (Temperature)</option>
+                        <option value="energy">⚡ انرژی و کار مکانیکی (Energy)</option>
+                        <option value="pressure">💨 فشار فیزیکی (Pressure)</option>
+                        <option value="torque">🔧 گشتاور پیچشی (Torque)</option>
+                    </select>
+                </div>
+
+                <!-- Operational Dual Converters Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
+                    <!-- From Unit Block -->
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-slate-600">مقدار و واحد مبدا:</label>
+                        <input type="number" id="conv-from-val" value="1" oninput="performConversion('from')" class="w-full bg-slate-50 border border-slate-300 font-mono text-left text-lg font-bold rounded-xl px-4 py-3 focus:ring-brand-500 focus:border-brand-500">
+                        <select id="conv-from-unit" onchange="performConversion('from')" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                            <!-- Populated dynamic -->
+                        </select>
+                    </div>
+
+                    <!-- To Unit Block -->
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-slate-600">مقدار و واحد مقصد:</label>
+                        <input type="number" id="conv-to-val" value="0" oninput="performConversion('to')" class="w-full bg-slate-50 border border-slate-300 font-mono text-left text-lg font-bold rounded-xl px-4 py-3 focus:ring-brand-500 focus:border-brand-500">
+                        <select id="conv-to-unit" onchange="performConversion('from')" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs">
+                            <!-- Populated dynamic -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Quick info banner -->
+                <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 text-xs text-blue-800 leading-relaxed flex gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                        <strong>اطلاعات موتور تبدیل:</strong> این ماشین‌حساب از معماری تبدیل ماتریسی به واحد مرجع پایه فیزیکی استفاده می‌کند. تمامی فرآیندهای محاسباتی به صورت زنده بدون هیچ نیازی به سرور یا اینترنت انجام می‌پذیرد.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mathematical Base Reference Multipliers Column -->
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <h3 class="text-sm font-bold text-slate-900 border-b pb-2 border-slate-100">ضرایب تبدیل به واحد مرجع</h3>
+                <p class="text-xs text-slate-500">تمام تبدیل‌ها ابتدا به واحد شاخص استاندارد جهانی تبدیل شده و سپس به واحد خروجی نگاشت می‌شوند:</p>
+                
+                <div id="conv-multipliers-list" class="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                    <!-- Dynamic rendering -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- App Logic Engine and Computations Script -->
+    <script>
+        // --- 0. STATE STORAGE & PWA SERVICE WORKER INITIALIZER ---
+        let appState = {
+            activeTab: 'engineering',
+            selectedFormula: 'ohm',
+            sigFigs: 4,
+            weightModule: {
+                gender: 'male',
+                age: 25,
+                weight: 70,
+                weightUnit: 'kg',
+                height: 175,
+                heightUnit: 'cm',
+                activity: 1.2,
+                scenario: 250
+            }
+        };
+
+        window.addEventListener('load', () => {
+            // Load state from localStorage if available
+            const savedState = localStorage.getItem('adv_calc_pwa_state');
+            if (savedState) {
+                try {
+                    appState = JSON.parse(savedState);
+                    document.getElementById('sig-figs').value = appState.sigFigs;
+                    // Apply saved module states
+                    if (appState.weightModule) {
+                        document.getElementById('weight-age').value = appState.weightModule.age;
+                        document.getElementById('weight-val').value = appState.weightModule.weight;
+                        document.getElementById('weight-unit').value = appState.weightModule.weightUnit;
+                        document.getElementById('height-val').value = appState.weightModule.height;
+                        document.getElementById('height-unit').value = appState.weightModule.heightUnit;
+                        document.getElementById('activity-level').value = appState.weightModule.activity;
+                        document.getElementById('gain-scenario').value = appState.weightModule.scenario;
+                        
+                        // Set active radio visually
+                        const isMale = appState.weightModule.gender === 'male';
+                        document.querySelector(`input[name="gender"][value="male"]`).checked = isMale;
+                        document.querySelector(`input[name="gender"][value="female"]`).checked = !isMale;
+                        toggleGenderStyle();
+                    }
+                } catch(e) { console.error("Error loading saved state", e); }
+            }
+            
+            // Build elements dynamically
+            switchTab(appState.activeTab);
+            selectFormula(appState.selectedFormula);
+            loadCategoryUnits();
+
+            // Register Mock Service Worker for PWA support offline compliance
+            if ('serviceWorker' in navigator) {
+                const swCode = `
+                    const CACHE_NAME = 'calc-pwa-v1';
+                    self.addEventListener('install', e => {
+                        e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(['/'])));
+                    });
+                    self.addEventListener('fetch', e => {
+                        e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
+                    });
+                `;
+                const blob = new Blob([swCode], { type: 'application/javascript' });
+                const swUrl = URL.createObjectURL(blob);
+                navigator.serviceWorker.register(swUrl).catch(err => console.log('SW registration skipped', err));
+            }
+        });
+
+        function saveState() {
+            // Collect fresh weight configuration
+            appState.weightModule = {
+                gender: document.querySelector('input[name="gender"]:checked').value,
+                age: parseInt(document.getElementById('weight-age').value) || 25,
+                weight: parseFloat(document.getElementById('weight-val').value) || 70,
+                weightUnit: document.getElementById('weight-unit').value,
+                height: parseFloat(document.getElementById('height-val').value) || 175,
+                heightUnit: document.getElementById('height-unit').value,
+                activity: parseFloat(document.getElementById('activity-level').value) || 1.2,
+                scenario: parseInt(document.getElementById('gain-scenario').value) || 250
+            };
+            localStorage.setItem('adv_calc_pwa_state', JSON.stringify(appState));
+        }
+
+        function updateSigFigs() {
+            appState.sigFigs = parseInt(document.getElementById('sig-figs').value) || 4;
+            saveState();
+            // Re-calculate active layouts if inputs exist
+            if(appState.activeTab === 'engineering') calculateEngineering();
+            if(appState.activeTab === 'weight') calculateWeightPlan();
+        }
+
+        // --- 1. CORE TAB CONTROLLER ---
+        function switchTab(tabId) {
+            appState.activeTab = tabId;
+            saveState();
+
+            // Toggle HTML section containers
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`sec-${tabId}`).classList.remove('hidden');
+
+            // Update top layout tab links style
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-white', 'text-brand-700', 'shadow-sm');
+                btn.classList.add('text-slate-600', 'hover:text-slate-900');
+            });
+            const activeBtn = document.getElementById(`btn-tab-${tabId}`);
+            if(activeBtn) {
+                activeBtn.classList.add('bg-white', 'text-brand-700', 'shadow-sm');
+                activeBtn.classList.remove('text-slate-600', 'hover:text-slate-900');
+            }
+
+            // Update mobile layout shortcuts style
+            document.querySelectorAll('.mobile-tab-btn').forEach(btn => {
+                btn.classList.remove('text-brand-600');
+                btn.classList.add('text-slate-500');
+            });
+            const activeMobBtn = document.getElementById(`mob-tab-${tabId}`);
+            if(activeMobBtn) {
+                activeMobBtn.classList.add('text-brand-600');
+                activeMobBtn.classList.remove('text-slate-500');
+            }
+        }
+
+        // --- 2. ENGINEERING MODULE ENGINE ---
+        const formulaDatabase = {
+            ohm: {
+                title: "ورودی‌های فرمول: قانون اهم (V = I × R)",
+                fields: [
+                    { id: 'v', label: 'ولتاژ (V)', placeholder: 'مثال: 12', defaults: '', unitOptions: ['V', 'mV', 'kV'] },
+                    { id: 'i', label: 'جریان الکتریکی (I)', placeholder: 'مثال: 0.015 یا 15m', defaults: '15', unitOptions: ['A', 'mA', 'μA'] },
+                    { id: 'r', label: 'مقاومت الکتریکی (R)', placeholder: 'مثال: 2000 یا 2k', defaults: '2', unitOptions: ['Ω', 'kΩ', 'MΩ'] }
+                ]
+            },
+            stress: {
+                title: "ورودی‌های فرمول: تنش مکانیکی (σ = F / A)",
+                fields: [
+                    { id: 'stress', label: 'تنش عمودی (σ)', placeholder: 'محاسبه خودکار', defaults: '', unitOptions: ['Pa', 'kPa', 'MPa', 'psi'] },
+                    { id: 'force', label: 'نیروی اعمالی (F)', placeholder: 'مثال: 500', defaults: '500', unitOptions: ['N', 'kN', 'lb'] },
+                    { id: 'area', label: 'مساحت سطح مقطع (A)', placeholder: 'مثال: 0.05', defaults: '0.05', unitOptions: ['m²', 'cm²', 'in²'] }
+                ]
+            },
+            continuity: {
+                title: "ورودی‌های فرمول: دینامیک سیالات (Q = A × v)",
+                fields: [
+                    { id: 'q', label: 'دبی جریان سیال (Q)', placeholder: 'حجم عبوری بر ثانیه', defaults: '', unitOptions: ['m³/s', 'L/s', 'GPM'] },
+                    { id: 'area', label: 'مساحت مقطع لوله (A)', placeholder: 'سطح عبور سیال', defaults: '0.1', unitOptions: ['m²', 'cm²', 'in²'] },
+                    { id: 'velocity', label: 'سرعت حرکت سیال (v)', placeholder: 'سرعت خطی', defaults: '2.5', unitOptions: ['m/s', 'cm/s', 'ft/s'] }
+                ]
+            }
+        };
+
+        // SI prefix values multiplier logic map
+        const unitMultipliers = {
+            'V': 1, 'mV': 1e-3, 'kV': 1e3,
+            'A': 1, 'mA': 1e-3, 'μA': 1e-6,
+            'Ω': 1, 'kΩ': 1e3, 'MΩ': 1e6,
+            'Pa': 1, 'kPa': 1e3, 'MPa': 1e6, 'psi': 6894.76,
+            'N': 1, 'kN': 1e3, 'lb': 4.44822,
+            'm²': 1, 'cm²': 1e-4, 'in²': 0.00064516,
+            'm³/s': 1, 'L/s': 1e-3, 'GPM': 6.30902e-5,
+            'm/s': 1, 'cm/s': 0.01, 'ft/s': 0.3048
+        };
+
+        function selectFormula(fId) {
+            appState.selectedFormula = fId;
+            saveState();
+
+            // Toggle background styles of select buttons
+            document.querySelectorAll('.formula-select-btn').forEach(btn => {
+                btn.classList.remove('border-brand-200', 'bg-brand-5/40', 'text-brand-900');
+                btn.classList.add('border-slate-200', 'text-slate-700');
+            });
+            document.getElementById(`f-btn-${fId}`).classList.add('border-brand-200', 'bg-brand-5/40', 'text-brand-900');
+
+            // Render dynamic form inputs layout
+            const config = formulaDatabase[fId];
+            document.getElementById('eng-form-title').innerText = config.title;
+            
+            const container = document.getElementById('eng-inputs-container');
+            container.innerHTML = '';
+
+            config.fields.forEach(field => {
+                const div = document.createElement('div');
+                div.className = 'grid grid-cols-3 gap-3 items-center';
+                div.innerHTML = `
+                    <label class="block text-xs font-bold text-slate-700">${field.label}:</label>
+                    <input type="text" id="input-eng-${field.id}" value="${field.defaults}" placeholder="${field.placeholder}" class="w-full bg-slate-50 border border-slate-300 font-mono text-left rounded-xl px-3 py-2 text-sm focus:ring-brand-500 focus:border-brand-500">
+                    <select id="unit-eng-${field.id}" class="bg-white border border-slate-200 rounded-xl px-2 py-2 text-xs">
+                        ${field.unitOptions.map(u => `<option value="${u}">${u}</option>`).join('')}
+                    </select>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Scientific format string generator function
+        function formatEngineeringResult(val, baseUnit) {
+            if (isNaN(val) || !isFinite(val)) return "خطا در محاسبات فیزیکی";
+            if (val === 0) return `0 ${baseUnit}`;
+            
+            const exponent = Math.floor(Math.log10(Math.abs(val)) / 3) * 3;
+            const baseValue = val / Math.pow(10, exponent);
+            const precisionValue = baseValue.toPrecision(appState.sigFigs);
+            
+            let prefix = "";
+            if (exponent === 3) prefix = "k";
+            else if (exponent === 6) prefix = "M";
+            else if (exponent === -3) prefix = "m";
+            else if (exponent === -6) prefix = "μ";
+            else if (exponent !== 0) prefix = ` × 10^${exponent} `;
+
+            return `${precisionValue} ${prefix}${baseUnit}`;
+        }
+
+        function calculateEngineering() {
+            const fId = appState.selectedFormula;
+            const steps = [];
+            let outputHTML = "";
+
+            try {
+                if (fId === 'ohm') {
+                    const vRaw = document.getElementById('input-eng-v').value.trim();
+                    const iRaw = document.getElementById('input-eng-i').value.trim();
+                    const rRaw = document.getElementById('input-eng-r').value.trim();
+
+                    const vUnit = document.getElementById('unit-eng-v').value;
+                    const iUnit = document.getElementById('unit-eng-i').value;
+                    const rUnit = document.getElementById('unit-eng-r').value;
+
+                    // Parse inputs count
+                    let count = 0;
+                    if (vRaw !== "") count++;
+                    if (iRaw !== "") count++;
+                    if (rRaw !== "") count++;
+
+                    if (count < 2) {
+                        alert("لطفاً حداقل دو فیلد از پارامترهای بالا را مقداردهی نمایید.");
+                        return;
+                    }
+
+                    steps.push("<strong>گام ۱:</strong> بررسی و استخراج واحدهای ورودی مهندسی.");
+
+                    if (vRaw === "") {
+                        // Calc V = I * R
+                        const I_val = parseFloat(iRaw) * unitMultipliers[iUnit];
+                        const R_val = parseFloat(rRaw) * unitMultipliers[rUnit];
+                        steps.push(`تبدیل جریان به استاندارد SI: ${I_val.toExponential(3)} A`);
+                        steps.push(`تبدیل مقاومت به استاندارد SI: ${R_val.toExponential(3)} Ω`);
+                        
+                        const V_res = I_val * R_val;
+                        steps.push(`<strong>گام ۲:</strong> اجرای محاسبات بر اساس فرمول ولتاژ: V = I × R`);
+                        steps.push(`V = ${I_val} × ${R_val} = ${V_res} Volts`);
+
+                        outputHTML = `<div class="text-xs text-brand-400 font-bold mb-1">ولتاژ محاسباتی (V):</div>
+                                      <div class="text-3xl font-black font-mono tracking-tight">${formatEngineeringResult(V_res, 'V')}</div>`;
+                    } else if (iRaw === "") {
+                        // Calc I = V / R
+                        const V_val = parseFloat(vRaw) * unitMultipliers[vUnit];
+                        const R_val = parseFloat(rRaw) * unitMultipliers[rUnit];
+                        if(R_val === 0) throw new Error("مقاومت نمی‌تواند صفر باشد (تقسیم بر صفر فیزیکی)");
+                        
+                        steps.push(`تبدیل ولتاژ به استاندارد SI: ${V_val.toExponential(3)} V`);
+                        steps.push(`تبدیل مقاومت به استاندارد SI: ${R_val.toExponential(3)} Ω`);
+                        
+                        const I_res = V_val / R_val;
+                        steps.push(`<strong>گام ۲:</strong> تغییر ساختار فرمول برای جریان: I = V / R`);
+                        steps.push(`I = ${V_val} / ${R_val} = ${I_res} Amperes`);
+
+                        outputHTML = `<div class="text-xs text-brand-400 font-bold mb-1">جریان الکتریکی محاسباتی (I):</div>
+                                      <div class="text-3xl font-black font-mono tracking-tight">${formatEngineeringResult(I_res, 'A')}</div>`;
+                    } else {
+                        // Calc R = V / I
+                        const V_val = parseFloat(vRaw) * unitMultipliers[vUnit];
+                        const I_val = parseFloat(iRaw) * unitMultipliers[iUnit];
+                        if(I_val === 0) throw new Error("جریان عبوری نمی‌تواند صفر باشد");
+
+                        steps.push(`تبدیل ولتاژ به استاندارد SI: ${V_val.toExponential(3)} V`);
+                        steps.push(`تبدیل جریان به استاندارد SI: ${I_val.toExponential(3)} A`);
+
+                        const R_res = V_val / I_val;
+                        steps.push(`<strong>گام ۲:</strong> تغییر ساختار فرمول برای مقاومت: R = V / I`);
+                        steps.push(`R = ${V_val} / ${I_val} = ${R_res} Ohms`);
+
+                        outputHTML = `<div class="text-xs text-brand-400 font-bold mb-1">مقاومت محاسباتی (R):</div>
+                                      <div class="text-3xl font-black font-mono tracking-tight">${formatEngineeringResult(R_res, 'Ω')}</div>`;
+                    }
+                } 
+                else if (fId === 'stress') {
+                    const sRaw = document.getElementById('input-eng-stress').value.trim();
+                    const fRaw = document.getElementById('input-eng-force').value.trim();
+                    const aRaw = document.getElementById('input-eng-area').value.trim();
+
+                    const sUnit = document.getElementById('unit-eng-stress').value;
+                    const fUnit = document.getElementById('unit-eng-force').value;
+                    const aUnit = document.getElementById('unit-eng-area').value;
+
+                    if (sRaw === "") {
+                        const F_val = parseFloat(fRaw) * unitMultipliers[fUnit];
+                        const A_val = parseFloat(aRaw) * unitMultipliers[aUnit];
+                        if (A_val === 0) throw new Error("مساحت مقطع فیزیکی نمی‌تواند صفر باشد");
+
+                        steps.push(`تبدیل نیرو به نیوتن: ${F_val.toExponential(2)} N`);
+                        steps.push(`تبدیل مساحت به مترمربع: ${A_val.toExponential(2)} m²`);
+                        
+                        const stress_res = F_val / A_val;
+                        steps.push(`محاسبه تنش مکانیکی: σ = F / A`);
+                        steps.push(`σ = ${F_val} / ${A_val} = ${stress_res} Pa`);
+
+                        outputHTML = `<div class="text-xs text-brand-400 font-bold mb-1">تنش مکانیکی نهایی (σ):</div>
+                                      <div class="text-3xl font-black font-mono tracking-tight">${formatEngineeringResult(stress_res, 'Pa')}</div>`;
+                    } else {
+                        alert("این حالت فرمول برای سهولت در نسخه فعلی به عنوان تنش پیش‌فرض تنظیم شده است.");
+                        return;
+                    }
+                }
+                else if (fId === 'continuity') {
+                    const qRaw = document.getElementById('input-eng-q').value.trim();
+                    const aRaw = document.getElementById('input-eng-area').value.trim();
+                    const vRaw = document.getElementById('input-eng-velocity').value.trim();
+
+                    const qUnit = document.getElementById('unit-eng-q').value;
+                    const aUnit = document.getElementById('unit-eng-area').value;
+                    const vUnit = document.getElementById('unit-eng-velocity').value;
+
+                    if (qRaw === "") {
+                        const A_val = parseFloat(aRaw) * unitMultipliers[aUnit];
+                        const V_val = parseFloat(vRaw) * unitMultipliers[vUnit];
+
+                        steps.push(`تبدیل مساحت لوله به مترمربع: ${A_val} m²`);
+                        steps.push(`تبدیل سرعت سیال به متر بر ثانیه: ${V_val} m/s`);
+
+                        const Q_res = A_val * V_val;
+                        steps.push(`محاسبه دبی جریان از معادله پیوستگی سیالات: Q = A × v`);
+                        
+                        outputHTML = `<div class="text-xs text-brand-400 font-bold mb-1">دبی کل جریان (Q):</div>
+                                      <div class="text-3xl font-black font-mono tracking-tight">${formatEngineeringResult(Q_res, 'm³/s')}</div>`;
+                    } else {
+                        alert("لطفا فیلد دبی (Q) را خالی بگذارید تا به صورت زنده محاسبه شود.");
+                        return;
+                    }
+                }
+
+                document.getElementById('eng-result-display').innerHTML = outputHTML;
+                document.getElementById('eng-steps-container').innerHTML = steps.map(s => `<p class="border-b border-slate-100 pb-1.5">${s}</p>`).join('');
+
+            } catch (err) {
+                document.getElementById('eng-result-display').innerHTML = `<p class="text-rose-400 text-sm font-bold">خطای محاسباتی: ${err.message}</p>`;
+            }
+        }
+
+        // --- 3. WEIGHT MANAGEMENT MODULE LOGIC ---
+        function toggleGenderStyle() {
+            const gender = document.querySelector('input[name="gender"]:checked').value;
+            const maleLabel = document.getElementById('lbl-gender-male');
+            const femaleLabel = document.getElementById('lbl-gender-female');
+            
+             if (gender === 'male') {
+                maleLabel.className = "border rounded-xl p-3 flex items-center justify-center gap-2 cursor-pointer transition-all bg-emerald-100 border-emerald-500 text-emerald-900";
+                femaleLabel.className = "border rounded-xl p-3 flex items-center justify-center gap-2 cursor-pointer transition-all border-slate-200 text-slate-600";
+           } else {
+                femaleLabel.className = "border rounded-xl p-3 flex items-center justify-center gap-2 cursor-pointer transition-all bg-emerald-100 border-emerald-500 text-emerald-900";
+                maleLabel.className = "border rounded-xl p-3 flex items-center justify-center gap-2 cursor-pointer transition-all border-slate-200 text-slate-600";
+           }
+            
+            saveState();
+        }
+
+        function handleWeightUnitChange() {
+            const unit = document.getElementById('weight-unit').value;
+            const input = document.getElementById('weight-val');
+            let currentVal = parseFloat(input.value) || 0;
+            if(unit === 'lb') {
+                input.value = (currentVal * 2.20462).toFixed(1);
+            } else {
+                input.value = (currentVal / 2.20462).toFixed(1);
+            }
+            saveState();
+        }
+
+        function handleHeightUnitChange() {
+            const unit = document.getElementById('height-unit').value;
+            const input = document.getElementById('height-val');
+            let currentVal = parseFloat(input.value) || 0;
+            if(unit === 'in') {
+                input.value = (currentVal / 2.54).toFixed(1);
+            } else {
+                input.value = (currentVal * 2.54).toFixed(1);
+            }
+            saveState();
+        }
+
+        function calculateWeightPlan() {
+            saveState();
+            
+            const gender = document.querySelector('input[name="gender"]:checked').value;
+            const age = parseInt(document.getElementById('weight-age').value) || 25;
+            let weight = parseFloat(document.getElementById('weight-val').value) || 70;
+            const weightUnit = document.getElementById('weight-unit').value;
+            let height = parseFloat(document.getElementById('height-val').value) || 175;
+            const heightUnit = document.getElementById('height-unit').value;
+            const activity = parseFloat(document.getElementById('activity-level').value);
+            const surplus = parseInt(document.getElementById('gain-scenario').value);
+
+            // Convert units to Base Metric for formulas compliance
+            if (weightUnit === 'lb') weight = weight / 2.20462;
+            if (heightUnit === 'in') height = height * 2.54;
+
+            // Mifflin-St Jeor formula
+            let bmr = 0;
+            if (gender === 'male') {
+                bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5;
+            } else {
+                bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161;
+            }
+
+            const tdee = bmr * activity;
+            const targetCalories = tdee + surplus;
+
+            // Macro configuration logic (Protein: 2g per kg body weight)
+            const proteinGrams = weight * 2;
+            const proteinCal = proteinGrams * 4;
+            
+            const fatCal = targetCalories * 0.25;
+            const fatGrams = fatCal / 9;
+
+            const carbCal = targetCalories - (proteinCal + fatCal);
+            const carbGrams = carbCal / 4;
+
+            // Render calculations on Dashboard fields
+            document.getElementById('wm-bmr').innerText = Math.round(bmr).toLocaleString() + " kcal";
+            document.getElementById('wm-tdee').innerText = Math.round(tdee).toLocaleString() + " kcal";
+            document.getElementById('wm-target-cal').innerText = Math.round(targetCalories).toLocaleString() + " kcal";
+
+            // Render Macros Bars elements UI
+            const macrosContainer = document.getElementById('wm-macros-container');
+            macrosContainer.innerHTML = `
+                <!-- Protein Row -->
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs font-bold">
+                        <span class="text-blue-700">🍗 پروتئین (حجم‌دهی عضلانی):</span>
+                        <span class="font-mono">${Math.round(proteinGrams)} گرم (${Math.round(proteinCal)} کالری)</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                        <div class="bg-blue-600 h-full" style="width: ${(proteinCal / targetCalories * 100).toFixed(0)}%"></div>
+                    </div>
+                </div>
+
+                <!-- Carbs Row -->
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs font-bold">
+                        <span class="text-amber-700">🌾 کربوهیدرات (تامین سوخت سلولی):</span>
+                        <span class="font-mono">${Math.round(carbGrams)} گرم (${Math.round(carbCal)} کالری)</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                        <div class="bg-amber-500 h-full" style="width: ${(carbCal / targetCalories * 100).toFixed(0)}%"></div>
+                    </div>
+                </div>
+
+                <!-- Fat Row -->
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs font-bold">
+                        <span class="text-rose-700">🥑 چربی‌های سالم (تنظیم هورمونی):</span>
+                        <span class="font-mono">${Math.round(fatGrams)} گرم (${Math.round(fatCal)} کالری)</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                        <div class="bg-rose-500 h-full" style="width: ${(fatCal / targetCalories * 100).toFixed(0)}%"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- 4. SYSTEM UNIT CONVERTER MATRIX ---
+        const conversionMatrix = {
+            length: {
+                base: 'meter',
+                units: {
+                    'meter (m)': 1,
+                    'centimeter (cm)': 0.01,
+                    'millimeter (mm)': 0.001,
+                    'kilometer (km)': 1000,
+                    'inch (in)': 0.0254,
+                    'feet (ft)': 0.3048,
+                    'mile (mi)': 1609.34
+                }
+            },
+            mass: {
+                base: 'kg',
+                units: {
+                    'kilogram (kg)': 1,
+                    'gram (g)': 0.001,
+                    'milligram (mg)': 1e-6,
+                    'pound (lb)': 0.45359237,
+                    'ounce (oz)': 0.028349523
+                }
+            },
+            volume: {
+                base: 'liter',
+                units: {
+                    'liter (L)': 1,
+                    'milliliter (mL)': 0.001,
+                    'cubic meter (m³)': 1000,
+                    'gallon (US)': 3.78541,
+                    'cup': 0.24
+                }
+            },
+            temperature: {
+                base: 'Celsius',
+                special: true // Triggers custom function implementation
+            },
+            energy: {
+                base: 'joule',
+                units: {
+                    'Joule (J)': 1,
+                    'kilojoule (kJ)': 1000,
+                    'calorie (cal)': 4.184,
+                    'kilocalorie (kcal)': 4184,
+                    'Watt-hour (Wh)': 3600,
+                    'kilowatt-hour (kWh)': 3600000
+                }
+            },
+            pressure: {
+                base: 'pascal',
+                units: {
+                    'Pascal (Pa)': 1,
+                    'kilopascal (kPa)': 1000,
+                    'bar': 100000,
+                    'atmosphere (atm)': 101325,
+                    'psi': 6894.76
+                }
+            },
+            torque: {
+                base: 'Nm',
+                units: {
+                    'Newton-meter (N·m)': 1,
+                    'Pound-foot (lb·ft)': 1.355818
+                }
+            }
+        };
+
+        function loadCategoryUnits() {
+            const cat = document.getElementById('conv-category').value;
+            const data = conversionMatrix[cat];
+            
+            const fromSelect = document.getElementById('conv-from-unit');
+            const toSelect = document.getElementById('conv-to-unit');
+            
+            fromSelect.innerHTML = '';
+            toSelect.innerHTML = '';
+
+            if (data.special) {
+                // Temperature specific
+                const tUnits = ['Celsius (°C)', 'Fahrenheit (°F)', 'Kelvin (K)'];
+                tUnits.forEach(u => {
+                    fromSelect.innerHTML += `<option value="${u}">${u}</option>`;
+                    toSelect.innerHTML += `<option value="${u}">${u}</option>`;
+                });
+            } else {
+                Object.keys(data.units).forEach((u, index) => {
+                    fromSelect.innerHTML += `<option value="${u}" ${index===0?'selected':''}>${u}</option>`;
+                    toSelect.innerHTML += `<option value="${u}" ${index===1?'selected':''}>${u}</option>`;
+                });
+            }
+
+            // Render reference list
+            const listContainer = document.getElementById('conv-multipliers-list');
+            listContainer.innerHTML = '';
+            if(!data.special) {
+                Object.entries(data.units).forEach(([name, multiplier]) => {
+                    listContainer.innerHTML += `
+                        <div class="flex justify-between text-xs border-b pb-1 border-slate-100 font-mono">
+                            <span class="text-slate-600">${name}</span>
+                            <span class="text-brand-700 font-bold">${multiplier} ${data.base}</span>
+                        </div>
+                    `;
+                });
+            } else {
+                listContainer.innerHTML = '<p class="text-xs text-slate-400 italic">تبدیل مقیاس‌های حرارتی از فرمول‌های خطی متغیر تبعیت می‌کند.</p>';
+            }
+
+            performConversion('from');
+        }
+
+        function performConversion(direction) {
+            const cat = document.getElementById('conv-category').value;
+            const data = conversionMatrix[cat];
+            
+            const fromUnit = document.getElementById('conv-from-unit').value;
+            const toUnit = document.getElementById('conv-to-unit').value;
+            
+            const fromInput = document.getElementById('conv-from-val');
+            const toInput = document.getElementById('conv-to-val');
+
+            if (data.special && cat === 'temperature') {
+                // Handle Temperature Scale
+                let val = parseFloat(direction === 'from' ? fromInput.value : toInput.value) || 0;
+                let fU = direction === 'from' ? fromUnit : toUnit;
+                let tU = direction === 'from' ? toUnit : fromUnit;
+
+                // Absolute conversion logic to Base Celsius first
+                let celsius = 0;
+                if (fU.includes('Celsius')) celsius = val;
+                else if (fU.includes('Fahrenheit')) celsius = (val - 32) * 5/9;
+                else if (fU.includes('Kelvin')) celsius = val - 273.15;
+
+                // Out to target unit
+                let result = 0;
+                if (tU.includes('Celsius')) result = celsius;
+                else if (tU.includes('Fahrenheit')) result = (celsius * 9/5) + 32;
+                else if (tU.includes('Kelvin')) result = celsius + 273.15;
+
+                if (direction === 'from') {
+                    toInput.value = result.toPrecision(appState.sigFigs);
+                } else {
+                    fromInput.value = result.toPrecision(appState.sigFigs);
+                }
+            } else {
+                // Handle Matrix Multiplier Scale
+                let v = parseFloat(direction === 'from' ? fromInput.value : toInput.value) || 0;
+                let mFrom = data.units[direction === 'from' ? fromUnit : toUnit];
+                let mTo = data.units[direction === 'from' ? toUnit : fromUnit];
+
+                // Convert to reference standard unit, then push out
+                let baseStandardValue = v * mFrom;
+                let finalValue = baseStandardValue / mTo;
+
+                if (direction === 'from') {
+                    toInput.value = finalValue.toPrecision(appState.sigFigs);
+                } else {
+                    fromInput.value = finalValue.toPrecision(appState.sigFigs);
+                }
+            }
+        }
+    </script>
+</body>
+<footer class="page-footer">
+    <span class="footer-copy"><a href="www.karimzaadeh.ir"> © 1405 فرهاد کریم‌زاده | www.karimzaadeh.ir</a></span>
+  </footer>
+</html>
