@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ماشین حساب صوتی فارسی | فرهاد کریم‌زاده</title>
+    <style>
+        * { box-sizing: border-box; font-family: Tahoma, sans-serif; }
+        body { 
+            display: flex; 
+            flex-direction: column; /* تغییر برای قرارگیری عمودی ماشین حساب و فوتر */
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            background-color: #f0f2f5; 
+            margin: 0; 
+        }
+        .calculator { background: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 320px; }
+        .screen { width: 100%; height: 60px; background: #222; color: #fff; text-align: left; padding: 10px; font-size: 1.5rem; border: none; border-radius: 8px; margin-bottom: 15px; direction: ltr; }
+        .status { text-align: center; color: #666; font-size: 0.9rem; margin-bottom: 10px; min-height: 20px; }
+        .buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        button { padding: 15px; font-size: 1.2rem; border: none; border-radius: 8px; cursor: pointer; background: #e0e0e0; transition: 0.2s; }
+        button:hover { background: #d5d5d5; }
+        button.operator { background: #ff9500; color: white; }
+        button.operator:hover { background: #e08400; }
+        button.clear { background: #ff3b30; color: white; }
+        button.clear:hover { background: #d32f2f; }
+        button.voice-btn { grid-column: span 4; background: #34c759; color: white; font-weight: bold; }
+        button.voice-btn:hover { background: #28a745; }
+        button.voice-btn.listening { background: #ff3b30; animation: pulse 1.5s infinite; }
+        
+        /* استایل اختصاصی برای فوتر در پایین صفحه */
+        footer {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    </style>
+</head>
+<body>
+     
+<div class="calculator">
+    <input type="text" id="screen" class="screen" readonly />
+    <div id="status" class="status">آماده برای کار</div>
+    
+    <div class="buttons">
+        <button class="voice-btn" id="voice-btn">🎤 صحبت کنید (فارسی)</button>
+        
+        <button class="clear" onclick="clearScreen()">C</button>
+        <button onclick="appendValue('/')">/</button>
+        <button onclick="appendValue('*')">*</button>
+        <button class="operator" onclick="calculate()">=</button>
+        
+        <button onclick="appendValue('7')">7</button>
+        <button onclick="appendValue('8')">8</button>
+        <button onclick="appendValue('9')">9</button>
+        <button onclick="appendValue('-')">-</button>
+        
+        <button onclick="appendValue('4')">4</button>
+        <button onclick="appendValue('5')">5</button>
+        <button onclick="appendValue('6')">6</button>
+        <button onclick="appendValue('+')">+</button>
+        
+        <button onclick="appendValue('1')">1</button>
+        <button onclick="appendValue('2')">2</button>
+        <button onclick="appendValue('3')">3</button>
+        <button onclick="appendValue('0')">0</button>
+    </div>
+</div>
+
+<!-- بخش فوتر اضافه شده -->
+<footer>
+    <a href="https://www.karimzaadeh.ir" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: #b601b6;"> &copy; Farhad Karimzadeh - 2026 </a>
+</footer>
+  
+<script>
+    const screen = document.getElementById('screen');
+    const statusDiv = document.getElementById('status');
+    const voiceBtn = document.getElementById('voice-btn');
+
+    // لود کردن ابزار تشخیص صدا مرورگر
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (!SpeechRecognition) {
+        statusDiv.innerText = "مرورگر شما از قابلیت صوتی پشتیبانی نمی‌کند. (از کروم یا اج استفاده کنید)";
+        voiceBtn.style.display = 'none';
+    } else {
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'fa-IR'; // تنظیم زبان روی فارسی
+        recognition.interimResults = false;
+
+        voiceBtn.addEventListener('click', () => {
+            recognition.start();
+            statusDiv.innerText = "در حال گوش دادن... بگویید (مثلاً: ۵ ضربدر ۴)";
+            voiceBtn.classList.add('listening');
+        });
+
+        recognition.onresult = (event) => {
+            voiceBtn.classList.remove('listening');
+            const speechToText = event.results[0][0].transcript;
+            statusDiv.innerText = `شنیده شد: "${speechToText}"`;
+            processVoiceCommand(speechToText);
+        };
+
+        recognition.onerror = () => {
+            voiceBtn.classList.remove('listening');
+            statusDiv.innerText = "خطا در تشخیص صدا. دوباره تلاش کنید.";
+        };
+        
+        recognition.onend = () => {
+            voiceBtn.classList.remove('listening');
+        };
+    }
+
+    // توابع معمولی ماشین حساب
+    function appendValue(val) { screen.value += val; }
+    function clearScreen() { screen.value = ''; statusDiv.innerText = 'آماده برای کار'; }
+    function calculate() {
+        try {
+            if(screen.value) screen.value = eval(screen.value);
+        } catch (e) {
+            screen.value = "Error";
+        }
+    }
+
+    // 🧠 مغز متفکر تبدیل متن صوتی به فرمول ریاضی
+    function processVoiceCommand(text) {
+        let command = text.toLowerCase();
+
+        // ۱. تبدیل اعداد فارسی به انگلیسی
+        const farsiDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+        for (let i = 0; i < 10; i++) {
+            const regex = new RegExp(farsiDigits[i], 'g');
+            command = command.replace(regex, i);
+        }
+
+        // ۲. تبدیل کلمات عملیاتی به نمادهای ریاضی
+        command = command.replace(/ضربدر|ضرب در|در/g, '*');
+        command = command.replace(/تقسیم بر|تقسیم/g, '/');
+        command = command.replace(/بعلاوه|به اضافه|جمع|و/g, '+');
+        command = command.replace(/منهای|منفی|کم از/g, '-');
+        
+        // حذف فضاهای خالی اضافه و کلمات زائد احتمالی مانند "میشه" یا "برابر است با"
+        command = command.replace(/[^0-9+\-*/.]/g, ''); 
+
+        if (command) {
+            screen.value = command;
+            // اجرای خودکار محاسبه بعد از ۱ ثانیه برای تجربه کاربری بهتر
+            setTimeout(() => { calculate(); }, 1000);
+        } else {
+            statusDiv.innerText = "متوجه فرمول نشدم. واضح‌تر بگویید.";
+        }
+    }
+</script>
+
+</body>
+</html>
